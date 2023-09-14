@@ -240,14 +240,25 @@ class SerialPortFinder {
         private const val TAG = "SerialPort"
     }
 
-    private var mDrivers: Vector<Driver>? = null
+    private lateinit var mDrivers: Vector<Driver>
 
     @Throws(IOException::class)
     private fun getDrivers(): Vector<Driver> {
-        if (mDrivers == null) {
-            mDrivers = Vector<Driver>()
+//    if (mDrivers == null) {
+    mDrivers = Vector<Driver>()
+    val r = LineNumberReader(FileReader("/proc/tty/drivers"))
+    var l: String?
+    while (r.readLine().also { l = it } != null) {
+        val drivername = l!!.substring(0, 0x15).trim()
+        val w = l!!.split(" +".toRegex()).toTypedArray()
+        if (w.size >= 5 && w[w.size - 1] == "serial") {
+            Log.d(TAG, "Found new driver $drivername on ${w[w.size - 4]}")
+            mDrivers.add(Driver(drivername, w[w.size - 4]))
         }
-        return mDrivers!!
+    }
+    r.close()
+// }
+return mDrivers
     }
 
     fun getAllDevices(): Array<String> {
