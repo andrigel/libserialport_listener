@@ -67,7 +67,9 @@ class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
         {
             getConnect(path)
         }
+    runOnUiThread {
       channel.invokeMethod("call_native",path)
+        }
       result.success("")
     } else if (call.method == "get_devices_path") {
       result.success(mSerialPortFinder.getAllDevicesPath().asList())
@@ -83,7 +85,9 @@ class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
 
   fun onDataReceived(result: String){
     Log.i("CustomLog",result)
+    runOnUiThread {
     channel?.invokeMethod("port_value_change",result)
+    }
   }
 
   fun getConnect(path: String) {
