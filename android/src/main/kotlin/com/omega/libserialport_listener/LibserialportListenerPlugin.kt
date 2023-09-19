@@ -7,6 +7,9 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import android.app.Activity
 
 import android.util.Log
 import androidx.annotation.IntDef
@@ -24,8 +27,9 @@ import java.io.LineNumberReader
 import java.util.Iterator
 import java.util.Vector
 
-class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
-  private lateinit var channel : MethodChannel
+class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler,ActivityAware {
+    private lateinit var channel : MethodChannel
+    private lateinit var activity : Activity
 
     protected lateinit var mSerialPort: SerialPort
     protected lateinit var mOutputStream: OutputStream
@@ -67,7 +71,7 @@ class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
         {
             getConnect(path)
         }
-    runOnUiThread {
+    activity.runOnUiThread {
       channel.invokeMethod("call_native",path)
         }
       result.success("")
@@ -85,7 +89,7 @@ class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
 
   fun onDataReceived(result: String){
     Log.i("CustomLog",result)
-    runOnUiThread {
+    activity.runOnUiThread {
     channel?.invokeMethod("port_value_change",result)
     }
   }
@@ -105,6 +109,19 @@ class LibserialportListenerPlugin: FlutterPlugin, MethodCallHandler {
             onDataReceived(e.toString())
         } 
     }
+  }
+
+  override fun onDetachedFromActivity() {
+  }
+
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+  }
+
+  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+    activity = binding.activity;
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
   }
 }
 
